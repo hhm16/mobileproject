@@ -9,7 +9,10 @@ import android.widget.FrameLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chat.ChatListRecycleView;
 import com.example.login.LogFragment;
 import com.example.my.R;
 
@@ -21,6 +24,9 @@ public class searchActivity extends AppCompatActivity {
     ArrayList<Integer>btnStatus;
     private FragmentManager supportFragmentManager;
     private FragmentTransaction fragmentTransaction;
+    private  TabFragment tagFragment;
+    private  boxFragment boxFragment;
+    OrderListAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,7 +34,8 @@ public class searchActivity extends AppCompatActivity {
         setContentView(R.layout.activity_search);
         supportFragmentManager = getSupportFragmentManager();
         fragmentTransaction = supportFragmentManager.beginTransaction();
-        fragmentTransaction.add(R.id.resultLayout,new TabFragment()).commit();
+        tagFragment = new TabFragment();
+        fragmentTransaction.add(R.id.resultLayout,tagFragment).commit();
         strings = new ArrayList<>();
     }
 
@@ -61,7 +68,23 @@ public class searchActivity extends AppCompatActivity {
 
     public void startSearch(View view)
     {
-        //fragmentTransaction = supportFragmentManager.beginTransaction();
-        //fragmentTransaction.add(R.id.resultLayout,new boxFragment()).commit();
+        if(boxFragment==null) {
+            fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            boxFragment = new boxFragment();
+            fragmentTransaction.hide(tagFragment).add(R.id.resultLayout, boxFragment).commit();
+        }
+        else
+        {
+            fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.hide(tagFragment).show(boxFragment).commit();
+        }
+    }
+
+    public void startInput(View view)
+    {
+        if(boxFragment!=null&&tagFragment!=null) {
+            fragmentTransaction = getSupportFragmentManager().beginTransaction();
+            fragmentTransaction.hide(boxFragment).show(tagFragment).commit();
+        }
     }
 }

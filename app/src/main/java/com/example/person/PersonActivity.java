@@ -61,6 +61,15 @@ public class PersonActivity extends AppCompatActivity {
                 chooseImage();
             }
         });
+        tempFile = new File(getExternalCacheDir()+"/"+System.currentTimeMillis()+".jpg");
+        if(!tempFile.exists())
+        {
+            try {
+                tempFile.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         //OrderBox orderBox = new OrderBox(MainActivity.this);
         //container.addView(orderBox,4);
         //OrderBox orderBox1 = new OrderBox(MainActivity.this);
@@ -91,6 +100,21 @@ public class PersonActivity extends AppCompatActivity {
             }
         }
     }
+    void askForReadPermission()
+    {
+        if (Build.VERSION.SDK_INT >= 23) {
+            int REQUEST_CODE_CONTACT = 101;
+            String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE};
+            //验证是否许可权限
+            for (String str : permissions)
+            {
+                if (this.checkSelfPermission(str) != PackageManager.PERMISSION_GRANTED) {
+                    //申请权限
+                    this.requestPermissions(permissions, REQUEST_CODE_CONTACT);
+                }
+            }
+        }
+    }
 
     void displayImg(String imgPath)
     {
@@ -104,17 +128,6 @@ public class PersonActivity extends AppCompatActivity {
     private void crop(Uri uri) {
         // 裁剪图片意图
         GlobalData globalData = (GlobalData)getApplication();
-        File loadingFile = new File(getExternalCacheDir(),"head.jpg");
-        if(!loadingFile.exists())
-        {
-            try {
-                loadingFile.createNewFile();
-            }
-            catch (IOException e)
-            {
-
-            }
-        }
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -126,15 +139,22 @@ public class PersonActivity extends AppCompatActivity {
         intent.putExtra("aspectX", 1);
         intent.putExtra("aspectY", 1);
         // 裁剪后输出图片的尺寸大小
-        intent.putExtra("outputX", 10);
-        intent.putExtra("outputY", 10);
+        intent.putExtra("outputX", 250);
+        intent.putExtra("outputY", 250);
         // 图片格式
         //intent.putExtra("output",Uri.fromFile(loadingFile));
-        intent.putExtra("outputFormat", "JPEG");
+        intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
         intent.putExtra("noFaceDetection", true);// 取消人脸识别
-        intent.putExtra("return-data", true);// true:不返回uri，false：返回uri
+        askForWritePermission();
+        askForReadPermission();
+        //imageUri = Uri.parse("file://"+"/"+getExternalCacheDir().getPath()+"/"+System.currentTimeMillis()+".jpg");
+        intent.putExtra("return-data", false);// true:不返回uri，false：返回uri
+        imageUri = Uri.fromFile(tempFile);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
         if(intent.resolveActivity(getPackageManager())!=null)
         {
+            askForWritePermission();
+            askForReadPermission();
             startActivityForResult(intent, PHOTO_REQUEST_CUT);
         }
     }
@@ -154,7 +174,6 @@ public class PersonActivity extends AppCompatActivity {
             if (data != null) {
 
                 Uri uri = data.getData();
-                imageUri = uri;
                 //String path = GetRealFilePath.getFilePathFromContentUri(uri,getContentResolver());
                 //displayImg(path);
                 try {
@@ -174,18 +193,6 @@ public class PersonActivity extends AppCompatActivity {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
-
-                /*GlobalData globalData = (GlobalData)getApplication();
-                if(new File(globalData.headImagePath).exists()) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(globalData.headImagePath);
-                    cImageView.setImageBitmap(bitmap);
-
-                }*/
-                /*tempFile = new File(Environment.getExternalStorageDirectory(),
-                        IMAGE_FILE_NAME);
-                if (tempFile.exists()) {
-                    tempFile.delete();
-                }*/
             }
         }
 

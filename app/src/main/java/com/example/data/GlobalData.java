@@ -3,15 +3,16 @@ package com.example.data;
 import android.app.Application;
 
 public class GlobalData extends Application {
-    private int sessionID;
+    public String sessionID;
+    private int ID;
     public String headImagePath;
     public int getSessionID()
     {
-        return sessionID;
+        return ID;
     }
-    public void setSessionID(int ID)
+    public void setID(int ID)
     {
-        sessionID = ID;
+        this.ID = ID;
     }
     public  String getHeadImagePath()
     {
@@ -19,7 +20,7 @@ public class GlobalData extends Application {
     }
     @Override
     public void onCreate(){
-        sessionID = -1;
+        ID = -1;
         headImagePath = getExternalCacheDir().getPath()+"/head";
         super.onCreate();
     }

@@ -26,6 +26,8 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class LogFragment extends Fragment {
     @Override
@@ -126,7 +128,18 @@ public class LogFragment extends Fragment {
                     {
                         int id = json.getInt("uid");
                         GlobalData globalData = (GlobalData)getActivity().getApplication();
-                        globalData.setSessionID(id);
+                        globalData.setID(id);
+                        String cookie = mHttpURLConnection.getHeaderField("Set-Cookie");
+                        //JSESSIONID=********;
+                        String pattern = "JSESSIONID=(\\w*);";
+                        Pattern p = Pattern.compile(pattern);
+                        Matcher m =  p.matcher(cookie);
+                        String sessionID = "";
+                        if(m.find())
+                        {
+                            sessionID = m.group(1);
+                        }
+                        globalData.sessionID = (String) sessionID;
                         mHttpURLConnection.disconnect();
                         return 1;
                     }
