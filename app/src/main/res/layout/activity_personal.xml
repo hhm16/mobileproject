@@ -9,7 +9,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@color/backgroud_title" >
+        android:background="@color/google_blue" >
 
         <ImageView
             android:id="@+id/imageview_person_back"
@@ -144,7 +144,7 @@
                     android:background="@drawable/actionsheet_bottom_normal"
                     android:ellipsize="end"
                     android:gravity="center|right"
-                    android:hint="boylw789"
+                    android:hint="252692547"
                     android:inputType="text"
                     android:maxLength="10"
                     android:paddingLeft="12dp"

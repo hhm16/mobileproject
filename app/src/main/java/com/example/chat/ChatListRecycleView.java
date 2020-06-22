@@ -16,8 +16,8 @@ import java.util.List;
 public class ChatListRecycleView extends RecyclerView.Adapter<ChatListRecycleView.WordViewHolder> {
     private final LayoutInflater mInflater;
     private List<Word> mWords;
-    ChatListRecycleView(Context context)
-    {
+
+    ChatListRecycleView(Context context) {
         mInflater = LayoutInflater.from(context);
     }
 
@@ -47,10 +47,12 @@ public class ChatListRecycleView extends RecyclerView.Adapter<ChatListRecycleVie
             return mWords.size();
         else return 0;
     }
-    void setWords(List<Word> words){
+
+    void setWords(List<Word> words) {
         mWords = words;
         notifyDataSetChanged();
     }
+
     static class WordViewHolder extends RecyclerView.ViewHolder {
         private final TextView wordItemView;
 
@@ -60,7 +62,7 @@ public class ChatListRecycleView extends RecyclerView.Adapter<ChatListRecycleVie
         }
     }
 
-    public Word getWordAtPosition (int position) {
+    public Word getWordAtPosition(int position) {
         return mWords.get(position);
     }
 }

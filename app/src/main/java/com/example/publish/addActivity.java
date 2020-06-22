@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.view.View;
 import android.view.Window;
@@ -22,6 +23,7 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,16 +33,36 @@ import com.example.map.MapActivity;
 import com.example.method.GetRealFilePath;
 import com.example.my.R;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.HttpMultipart;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.MulticastSocket;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.UUID;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class addActivity extends AppCompatActivity {
     private int RESULT_GET_PLACE = 0;
@@ -49,7 +71,7 @@ public class addActivity extends AppCompatActivity {
     private int PHOTO_REQUEST_CUT = 2;
     private GridLayout gridLayout;
     private File tempFile;
-    private ArrayList<Uri>imageUriList;
+    private ArrayList<Bitmap>imageList;
     private Uri imageUri;
     private int numOfImage = 0;
     private EditText startPlaceEdit;
@@ -57,6 +79,8 @@ public class addActivity extends AppCompatActivity {
     private EditText titleEdit;
     private EditText contentEdit;
     private Spinner spinner;
+    private static final String PREFIX="--";
+    private static final String LINE_END="\r\n";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +94,7 @@ public class addActivity extends AppCompatActivity {
         titleEdit = findViewById(R.id.titleText);
         contentEdit = findViewById(R.id.contentEdit);
         spinner = findViewById(R.id.spinner);
-        imageUriList = new ArrayList<>();
+        imageList = new ArrayList<>();
         tempFile = new File(getExternalCacheDir()+"/"+System.currentTimeMillis()+".jpg");
         if(!tempFile.exists())
         {
@@ -166,6 +190,9 @@ public class addActivity extends AppCompatActivity {
                 try {
                     //获取的Bitmap
                     Bitmap bitmap = BitmapFactory.decodeStream(contentResolver.openInputStream(imageUri));
+                    GlobalData globalData = (GlobalData)getApplication();
+                    globalData.bitmap = bitmap;
+                    imageList.add(bitmap);
                     ImageView cImageView = new ImageView(this);
                     cImageView.setImageBitmap(bitmap);
                     gridLayout.addView(cImageView);
@@ -277,6 +304,8 @@ public class addActivity extends AppCompatActivity {
     public void publish(View view) {
         HttpThread httpThread = new HttpThread();
         httpThread.start();
+        Toast toast=Toast.makeText(getApplicationContext(),"发送成功，请返回",Toast.LENGTH_SHORT);
+        toast.show();
     }
 
     private class HttpThread extends Thread
@@ -285,9 +314,13 @@ public class addActivity extends AppCompatActivity {
         public void run() {
             try {
                 String url;
+                int oid = -1;
                 url = "http://106.54.118.148:8080/order/add/";
                 URL mUrl = new URL(url);
                 HttpURLConnection mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
+                GlobalData globalData = (GlobalData) getApplication();
+                String jID = "JSESSIONID="+globalData.sessionID;
+                mHttpURLConnection.setRequestProperty("Cookie",jID);
                 mHttpURLConnection.setRequestMethod("PUT");
                 OutputStream output = mHttpURLConnection.getOutputStream();
                 String title = titleEdit.getText().toString();
@@ -300,16 +333,88 @@ public class addActivity extends AppCompatActivity {
                 output.flush();
                 output.close();
                 //mHttpURLConnection.connect();
-                GlobalData globalData = (GlobalData) getApplication();
-                String jID = "JSESSIONID="+globalData.sessionID;
-                mHttpURLConnection.setRequestProperty("Cookie",jID);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(
                         mHttpURLConnection.getInputStream()));
                 final StringBuffer buffer = new StringBuffer();
                 String str = null;
                 while ((str = reader.readLine()) != null) {
                     buffer.append(str);
+                    JSONObject json = new JSONObject(str);
+                    if(json.getInt("code")==201) {
+                        mHttpURLConnection.disconnect();
+                        oid = json.getInt("oid");
+                    }
                 }
+                if(oid!=-1) {
+                    for(int i=0;i<imageList.size();i++)
+                    {
+                        Bitmap bitmap = imageList.get(i);
+                        MultipartEntity multipartEntity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG,100,bos);
+                        byte[] imageData = bos.toByteArray();
+                        multipartEntity.addPart("image",new ByteArrayBody(imageData,"image.jpeg"));
+
+                        url = "http://106.54.118.148:8080/orderImage/upload"+"?oid="+oid;
+                        HttpPost httpPost = new HttpPost(url);
+                        httpPost.setHeader("cookie",jID);
+                        httpPost.setEntity(multipartEntity);
+                        HttpClient httpClient = new DefaultHttpClient();
+                        HttpContext localContext = new BasicHttpContext();
+                        HttpResponse response = httpClient.execute(httpPost,localContext);
+                        reader = new BufferedReader(new InputStreamReader( response.getEntity().getContent(), "UTF-8"));
+                        String sResponse = reader.readLine();
+                        /*
+                        String  BOUNDARY =  UUID.randomUUID().toString();
+                        mUrl = new URL(url);
+                        mHttpURLConnection = (HttpURLConnection) mUrl.openConnection();
+                        mHttpURLConnection.setRequestMethod("POST");
+                        mHttpURLConnection.setRequestProperty("Charset", "utf-8");
+                        mHttpURLConnection.setRequestProperty("Cookie",jID);
+                        mHttpURLConnection.setRequestProperty("Connection", "Keep-Alive");
+                        mHttpURLConnection.setRequestProperty("Content-Type","multipart/form-data;boundary="+BOUNDARY);
+
+                        String[] params = {"\"ownerId\"","\"docName\"","\"docType\"","\"sessionKey\"","\"sig\""};
+                        String[] values = {"1410065922","zelda","jpg","dfbe0e1686656d5a0c8de11347f93bb6","e70cff74f433ded54b014e7402cf094a"};
+
+                         */
+                        //添加docName,docType,sessionKey,sig参数
+                        /*output = mHttpURLConnection.getOutputStream();
+                        DataOutputStream dos = new DataOutputStream(output);
+                        for(int j=0;j<params.length;j++) {
+                            //添加分割边界
+                            StringBuffer sb = new StringBuffer();
+                            sb.append(PREFIX);
+                            sb.append(BOUNDARY);
+                            sb.append(LINE_END);
+
+                            sb.append("Content-Disposition: form-data; name=" + params[j] + LINE_END);
+                            sb.append(LINE_END);
+                            sb.append(values[j]);
+                            sb.append(LINE_END);
+                            dos.write(sb.toString().getBytes());
+                        }
+                        StringBuffer sb = new StringBuffer();
+                        sb.append(PREFIX);
+                        sb.append(BOUNDARY);
+                        sb.append(LINE_END);
+
+                        sb.append("Content-Disposition: form-data; name=\"data\";filename=" + "\"" + "zelda" + "\"" + LINE_END);
+                        sb.append("Content-Type: image/jpg"+LINE_END);
+                        sb.append(LINE_END);
+                        dos.write(sb.toString().getBytes());
+                        Bitmap bitmap = imageList.get(i);
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG,100,bos);
+                        byte[] imageData = bos.toByteArray();
+                        dos.write(imageData);
+                        dos.write(LINE_END.getBytes());
+                        byte[] end_data = (PREFIX+BOUNDARY+PREFIX+LINE_END).getBytes();
+                        dos.write(end_data);
+                        dos.flush();*/
+                    }
+                }
+
             }
             catch (Exception e)
             {
