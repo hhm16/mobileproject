@@ -56,9 +56,9 @@ public class LogFragment extends Fragment {
         String url;
         EditText accountEditText,passwordEditText;
         accountEditText = getView().findViewById(R.id.accounttext);
-        accountEditText.setText("hhm16");
+        // accountEditText.setText("hhm16");
         passwordEditText = getView().findViewById(R.id.passwordtext);
-        passwordEditText.setText("hhm16");
+        // passwordEditText.setText("hhm16");
         account = accountEditText.getText().toString();
         password = passwordEditText.getText().toString();
         url = "http://106.54.118.148:8000/user/login?name="+account+"&"+"password="+password;
