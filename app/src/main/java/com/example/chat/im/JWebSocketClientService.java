@@ -155,7 +155,7 @@ public class JWebSocketClientService extends Service {
                 sendBroadcast(intent);
 
                 // todo: 由于前台通知总是报错，暂时停止
-                // checkLockAndShowNotification(message);
+                checkLockAndShowNotification(message);
             }
 
             @Override
@@ -260,12 +260,11 @@ public class JWebSocketClientService extends Service {
         intent.setClass(this, ChatActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         NotificationManager notifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationCompat.Builder notification;
+        /*
         String CHANNEL_ONE_ID = "com.example.my";    //这里的id里面输入自己的项目的包的路径
-        String CHANNEL_ONE_NAME = "Channel One";
+        String CHANNEL_ONE_NAME = "清华帮帮忙";
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             //修改安卓8.1以上系统报错
-
             NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ONE_ID, CHANNEL_ONE_NAME, NotificationManager.IMPORTANCE_MIN);
             notificationChannel.enableLights(true);//如果使用中的设备支持通知灯，则说明此通知通道是否应显示灯
             notificationChannel.setShowBadge(true);//是否显示角标
@@ -275,7 +274,10 @@ public class JWebSocketClientService extends Service {
         } else {
             notification = new NotificationCompat.Builder(JWebSocketClientService.this);
         }
-        notification.setAutoCancel(true)
+
+         */
+        Notification notification = new NotificationCompat.Builder(this)
+                .setAutoCancel(true)
                 // 设置该通知优先级
                 .setPriority(Notification.PRIORITY_MAX)
                 .setSmallIcon(R.drawable.icon)
@@ -287,13 +289,14 @@ public class JWebSocketClientService extends Service {
                 .setDefaults(Notification.DEFAULT_VIBRATE | Notification.DEFAULT_ALL | Notification.DEFAULT_SOUND)
                 .setContentIntent(pendingIntent)
                 .build();
-        //设置Notification的ChannelID,否则不能正常显示
+        /*设置Notification的ChannelID,否则不能正常显示
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notification.setChannelId(CHANNEL_ONE_ID);
         }
-        Notification notification1 = notification.build();
-        startForeground(1, notification1);
-        // notifyManager.notify(1, notification);//id要保证唯一
+         */
+        // Notification notification1 = notification.build();
+        // startForeground(1, notification1);
+        notifyManager.notify(1, notification);//id要保证唯一
     }
 
 

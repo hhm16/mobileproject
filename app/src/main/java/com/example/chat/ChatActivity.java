@@ -34,6 +34,9 @@ import com.example.chat.model.ChatMessage;
 import com.example.chat.util.Util;
 import com.example.my.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -71,13 +74,21 @@ public class ChatActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onReceive(Context context, Intent intent) {
             String message = intent.getStringExtra("message");
-            ChatMessage chatMessage = new ChatMessage();
-            chatMessage.setContent(message);
-            chatMessage.setIsMeSend(0);
-            chatMessage.setIsRead(1);
-            chatMessage.setTime(System.currentTimeMillis() + "");
-            chatMessageList.add(chatMessage);
-            initChatMsgListView();
+
+            JSONObject jsonObject = null;
+            try {
+                jsonObject = new JSONObject(message);
+                ChatMessage chatMessage = new ChatMessage();
+                // todo: 好友可以自取senderName进行修改
+                chatMessage.setContent(jsonObject.getString("content"));
+                chatMessage.setIsMeSend(0);
+                chatMessage.setIsRead(1);
+                chatMessage.setTime(System.currentTimeMillis() + "");
+                chatMessageList.add(chatMessage);
+                initChatMsgListView();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
