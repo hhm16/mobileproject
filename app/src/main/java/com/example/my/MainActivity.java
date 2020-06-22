@@ -66,19 +66,19 @@ public class MainActivity extends AppCompatActivity {
         List<BottomNavigationEntity> mEntities = new ArrayList<>();
 
         mEntities.add(new BottomNavigationEntity(
-                "图片",
+                "主页",
                 R.drawable.info,
                 R.drawable.info_selected));
         mEntities.add(new BottomNavigationEntity(
-                "视频",
+                "发起活动",
                 R.drawable.info,
                 R.drawable.info_selected));
         mEntities.add(new BottomNavigationEntity(
-                "关注",
+                "个人信息",
                 R.drawable.info,
                 R.drawable.info_selected));
         mEntities.add(new BottomNavigationEntity(
-                "我的",
+                "我的订单",
                 R.drawable.info,
                 R.drawable.info_selected, 10));
         bottomNavigationBar.setEntities(mEntities);

@@ -129,8 +129,8 @@ public class PersonActivity extends AppCompatActivity {
         // 裁剪图片意图
         GlobalData globalData = (GlobalData)getApplication();
         Intent intent = new Intent("com.android.camera.action.CROP");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        //intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        //intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         intent.setDataAndType(uri, "image/*");
         //intent.setDataAndType(Uri.parse(path), "image/*");
         //intent.setDataAndType(Uri.fromFile(new File(path)), "image/*");
@@ -145,16 +145,12 @@ public class PersonActivity extends AppCompatActivity {
         //intent.putExtra("output",Uri.fromFile(loadingFile));
         intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
         intent.putExtra("noFaceDetection", true);// 取消人脸识别
-        askForWritePermission();
-        askForReadPermission();
         //imageUri = Uri.parse("file://"+"/"+getExternalCacheDir().getPath()+"/"+System.currentTimeMillis()+".jpg");
         intent.putExtra("return-data", false);// true:不返回uri，false：返回uri
         imageUri = Uri.fromFile(tempFile);
         intent.putExtra(MediaStore.EXTRA_OUTPUT,imageUri);
         if(intent.resolveActivity(getPackageManager())!=null)
         {
-            askForWritePermission();
-            askForReadPermission();
             startActivityForResult(intent, PHOTO_REQUEST_CUT);
         }
     }

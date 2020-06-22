@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chat.ChatListRecycleView;
 import com.example.chat.Word;
+import com.example.data.GlobalData;
 import com.example.my.OrderBox;
 import com.example.my.R;
 
@@ -37,6 +38,10 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
         if (orderList != null) {
             OrderBoxStructure current = orderList.get(position);
             holder.titleItemView.setText(current.title);
+            if(current.imageList.size()>0) {
+                holder.coverItemView.setImageBitmap(current.imageList.get(0));
+            }
+            holder.infoItemView.setText(current.content);
         } else {
             // Covers the case of data not being ready yet.
             holder.titleItemView.setText("No Word");
@@ -59,10 +64,12 @@ public class OrderListAdapter extends RecyclerView.Adapter<OrderListAdapter.Orde
     static class OrderBoxHolder extends RecyclerView.ViewHolder {
         private final TextView titleItemView;
         private final ImageView coverItemView;
+        private final TextView infoItemView;
         private OrderBoxHolder(View itemView) {
             super(itemView);
             titleItemView = itemView.findViewById(R.id.order_title);
             coverItemView = itemView.findViewById(R.id.order_cover);
+            infoItemView = itemView.findViewById(R.id.order_info);
         }
     }
 }

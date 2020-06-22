@@ -1,10 +1,12 @@
 package com.example.data;
 
 import android.app.Application;
+import android.graphics.Bitmap;
 
 public class GlobalData extends Application {
     public String sessionID;
     private int ID;
+    public Bitmap bitmap;
     public String headImagePath;
     public int getSessionID()
     {
